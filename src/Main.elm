@@ -158,46 +158,51 @@ recalculateFromHuman : Model -> Model
 recalculateFromHuman model =
     let
         isoString =
-            "\""
-                ++ String.padLeft 4 '0' model.year
-                ++ "-"
-                ++ String.padLeft 2 '0' model.month
-                ++ "-"
-                ++ String.padLeft 2 '0' model.date
-                ++ "T"
-                ++ String.padLeft 2 '0' model.hour
-                ++ ":"
-                ++ String.padLeft 2 '0' model.minute
-                ++ ":"
-                ++ String.padLeft 2 '0' model.second
-                ++ "."
-                ++ String.padLeft 3 '0' model.milli
-                ++ "Z"
-                ++ "\""
+            humanToIso model
 
-        parsedMillis =
-            isoString
-                |> JD.decodeString Iso8601.decoder
-                |> Result.map Time.posixToMillis
-
-        ( clarionDate, clarionTime ) =
-            case parsedMillis of
-                Ok millis ->
-                    let
-                        posix =
-                            millis - Time.posixToMillis clarionStartDate
-                    in
-                    ( String.fromInt (posix // millisInDay)
-                    , String.fromInt (Basics.modBy millisInDay posix // 10 + 1)
-                    )
+        { clarionDate, clarionTime } =
+            case JD.decodeString Iso8601.decoder isoString of
+                Ok time ->
+                    posixToClarion time
 
                 Err _ ->
-                    ( "", "" )
+                    { clarionDate = "", clarionTime = "" }
     in
     { model
         | clarionDate = clarionDate
         , clarionTime = clarionTime
         , isoDate = isoString |> String.replace "\"" ""
+    }
+
+
+humanToIso : Model -> String
+humanToIso model =
+    "\""
+        ++ String.padLeft 4 '0' model.year
+        ++ "-"
+        ++ String.padLeft 2 '0' model.month
+        ++ "-"
+        ++ String.padLeft 2 '0' model.date
+        ++ "T"
+        ++ String.padLeft 2 '0' model.hour
+        ++ ":"
+        ++ String.padLeft 2 '0' model.minute
+        ++ ":"
+        ++ String.padLeft 2 '0' model.second
+        ++ "."
+        ++ String.padLeft 3 '0' model.milli
+        ++ "Z"
+        ++ "\""
+
+
+posixToClarion : Time.Posix -> { clarionDate : String, clarionTime : String }
+posixToClarion time =
+    let
+        posix =
+            Time.posixToMillis time - Time.posixToMillis clarionStartDate
+    in
+    { clarionDate = String.fromInt (posix // millisInDay)
+    , clarionTime = String.fromInt (Basics.modBy millisInDay posix // 10 + 1)
     }
 
 
@@ -208,9 +213,6 @@ recalculateFromIso model =
             ("\"" ++ model.isoDate ++ "\"")
                 |> JD.decodeString Iso8601.decoder
                 |> Result.map Time.posixToMillis
-
-        _ =
-            Debug.log "iso" parsedMillis
     in
     case parsedMillis of
         Ok millis ->
@@ -222,17 +224,21 @@ recalculateFromIso model =
                     time
                         |> accessor Time.utc
                         |> String.fromInt
+
+                { clarionDate, clarionTime } =
+                    posixToClarion time
             in
-            recalculateFromHuman
-                { model
-                    | year = toInput Time.toYear
-                    , month = Time.toMonth Time.utc time |> monthToNumber |> String.fromInt
-                    , date = toInput Time.toDay
-                    , hour = toInput Time.toHour
-                    , minute = toInput Time.toMinute
-                    , second = toInput Time.toSecond
-                    , milli = toInput Time.toMillis
-                }
+            { model
+                | year = toInput Time.toYear
+                , month = Time.toMonth Time.utc time |> monthToNumber |> String.fromInt
+                , date = toInput Time.toDay
+                , hour = toInput Time.toHour
+                , minute = toInput Time.toMinute
+                , second = toInput Time.toSecond
+                , milli = toInput Time.toMillis
+                , clarionDate = clarionDate
+                , clarionTime = clarionTime
+            }
 
         Err _ ->
             { model
