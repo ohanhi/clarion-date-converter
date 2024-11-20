@@ -3,21 +3,16 @@
   <meta charset="UTF-8">
   <title>Clarion Date Time Converter</title>
   <script src="main.js"></script>
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
   <div id="myapp"></div>
   <script>
-  var now = new Date()
   var app = Elm.Main.init({
     node: document.getElementById('myapp'),
     flags: {
-      year: now.getFullYear(),
-      month: now.getMonth() + 1,
-      date: now.getDate(),
-      hour: now.getHours(),
-      minute: now.getMinutes(),
-      second: now.getSeconds(),
+      isoDate: new Date().toISOString()
     }
   });
   </script>

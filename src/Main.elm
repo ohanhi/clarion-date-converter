@@ -21,7 +21,8 @@ millisInDay =
 
 
 type alias Model =
-    { clarionDate : String
+    { isoDate : String
+    , clarionDate : String
     , clarionTime : String
     , year : String
     , month : String
@@ -34,34 +35,31 @@ type alias Model =
 
 
 type alias Flags =
-    { year : Int
-    , month : Int
-    , date : Int
-    , hour : Int
-    , minute : Int
-    , second : Int
+    { isoDate : String
     }
 
 
 initModel : Flags -> ( Model, Cmd Msg )
 initModel flags =
-    ( recalculateFromHuman
-        { clarionDate = "0"
-        , clarionTime = "1"
-        , year = String.fromInt flags.year
-        , month = String.fromInt flags.month
-        , date = String.fromInt flags.date
-        , hour = String.fromInt flags.hour
-        , minute = String.fromInt flags.minute
-        , second = String.fromInt flags.second
-        , milli = "000"
+    ( recalculateFromIso
+        { isoDate = flags.isoDate
+        , clarionDate = ""
+        , clarionTime = ""
+        , year = ""
+        , month = ""
+        , date = ""
+        , hour = ""
+        , minute = ""
+        , second = ""
+        , milli = ""
         }
     , Cmd.none
     )
 
 
 type Msg
-    = ClarionDateInput String
+    = IsoDateInput String
+    | ClarionDateInput String
     | ClarionTimeInput String
     | DateInput String
     | MonthInput String
@@ -74,6 +72,9 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     ( case msg of
+        IsoDateInput str ->
+            recalculateFromIso { model | isoDate = str }
+
         ClarionDateInput str ->
             recalculateFromClarion { model | clarionDate = str }
 
@@ -149,6 +150,7 @@ recalculateFromClarion model =
         , minute = toInput Time.toMinute
         , second = toInput Time.toSecond
         , milli = toInput Time.toMillis
+        , isoDate = state |> Maybe.map (Iso8601.fromTime >> String.replace "\"" "") |> Maybe.withDefault ""
     }
 
 
@@ -195,7 +197,53 @@ recalculateFromHuman model =
     { model
         | clarionDate = clarionDate
         , clarionTime = clarionTime
+        , isoDate = isoString |> String.replace "\"" ""
     }
+
+
+recalculateFromIso : Model -> Model
+recalculateFromIso model =
+    let
+        parsedMillis =
+            ("\"" ++ model.isoDate ++ "\"")
+                |> JD.decodeString Iso8601.decoder
+                |> Result.map Time.posixToMillis
+
+        _ =
+            Debug.log "iso" parsedMillis
+    in
+    case parsedMillis of
+        Ok millis ->
+            let
+                time =
+                    Time.millisToPosix millis
+
+                toInput accessor =
+                    time
+                        |> accessor Time.utc
+                        |> String.fromInt
+            in
+            recalculateFromHuman
+                { model
+                    | year = toInput Time.toYear
+                    , month = Time.toMonth Time.utc time |> monthToNumber |> String.fromInt
+                    , date = toInput Time.toDay
+                    , hour = toInput Time.toHour
+                    , minute = toInput Time.toMinute
+                    , second = toInput Time.toSecond
+                    , milli = toInput Time.toMillis
+                }
+
+        Err _ ->
+            { model
+                | year = ""
+                , month = ""
+                , date = ""
+                , hour = ""
+                , minute = ""
+                , second = ""
+                , milli = ""
+            }
 
 
 view : Model -> Html Msg
@@ -213,17 +261,28 @@ view model =
                     []
                 ]
     in
-    div
-        [ style "width" "400px"
-        , style "margin" "3rem auto"
-        ]
-        [ div [ class "clarion-fields" ]
-            [ h4 [] [ text "Clarion" ]
+    main_
+        []
+        [ header [] [ h1 [] [ text "Clarion and Date Time Converter" ] ]
+        , div [ class "clarion-fields" ]
+            [ h2 [] [ text "Clarion" ]
             , field "Clarion Date" model.clarionDate ClarionDateInput
             , field "Clarion Time" model.clarionTime ClarionTimeInput
             ]
+        , div [ class "iso-date-fields" ]
+            [ h2 [] [ text "ISO 8601" ]
+            , label []
+                [ div [] [ text "Date String" ]
+                , input
+                    [ type_ "text"
+                    , onInput IsoDateInput
+                    , value model.isoDate
+                    ]
+                    []
+                ]
+            ]
         , div [ class "human-fields" ]
-            [ h4 [] [ text "Human" ]
+            [ h2 [] [ text "Human" ]
             , field "Day" model.date DateInput
             , field "Month" model.month MonthInput
             , field "Year" model.year YearInput
@@ -231,6 +290,12 @@ view model =
             , field "Minute" model.minute MinuteInput
             , field "Second" model.second SecondInput
             ]
+        , p [] [ text """Clarion date is the number of days since 28th of December, 1800.
+        Interestingly, the first valid date is 1st of January, 1801.
+        This means the valid values range from 4 upwards.""" ]
+        , p [] [ text """Clarion time is centiseconds from midnight, indexed from 1.
+        That is, 1/100ths of a second from midnight + 1.
+        There are 86400 seconds in a day, which means the valid values range from 1 to 864000""" ]
         ]
 
 
