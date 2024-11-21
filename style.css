@@ -87,7 +87,7 @@ label {
   flex-direction: row;
 }
 
-.human-fields {
+.human-fields label {
   flex: 1 0 0;
 }
 

@@ -15,7 +15,8 @@
   var app = Elm.Main.init({
     node: document.getElementById('myapp'),
     flags: {
-      isoDate: new Date().toISOString()
+      now: Date.now(),
+      offsetMinutes: new Date().getTimezoneOffset()
     }
   });
   </script>
