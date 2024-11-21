@@ -2,7 +2,7 @@ module TestMain exposing (..)
 
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
-import Main exposing (clarionToPosix, millisInDay, posixToClarion)
+import Main exposing (clarionToPosix, maxClarionTime, posixToClarion)
 import Test exposing (..)
 import Time
 
@@ -10,11 +10,6 @@ import Time
 maxSafeInteger : Int
 maxSafeInteger =
     2 ^ 31 - 1
-
-
-maxClarionTime : Int
-maxClarionTime =
-    millisInDay // 10
 
 
 firstOf1801 : Time.Posix
