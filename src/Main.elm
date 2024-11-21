@@ -56,6 +56,13 @@ clarionToPosix { clarionDate, clarionTime } =
     Time.millisToPosix (dateMillis + timeMillis)
 
 
+timeToIso : Time.Posix -> String
+timeToIso time =
+    time
+        |> Iso8601.fromTime
+        |> String.replace "Z" ""
+
+
 
 --- APPLICATION
 
@@ -75,14 +82,21 @@ type alias Model =
 
 
 type alias Flags =
-    { isoDate : String
+    { now : Int
+    , offsetMinutes : Int
     }
 
 
 initModel : Flags -> ( Model, Cmd Msg )
 initModel flags =
+    let
+        isoDate =
+            (flags.now + (flags.offsetMinutes * -60000))
+                |> Time.millisToPosix
+                |> timeToIso
+    in
     ( recalculateFromIso
-        { isoDate = flags.isoDate
+        { isoDate = isoDate
         , clarionDate = ""
         , clarionTime = ""
         , year = ""
@@ -154,7 +168,7 @@ recalculateFromClarion model =
         { model
             | isoDate =
                 maybeTime
-                    |> Maybe.map (Iso8601.fromTime >> String.replace "\"" "")
+                    |> Maybe.map (timeToIso >> String.replace "\"" "")
                     |> Maybe.withDefault ""
         }
 
@@ -181,7 +195,6 @@ humanToIso model =
         ++ String.padLeft 2 '0' model.second
         ++ "."
         ++ String.padLeft 3 '0' model.milli
-        ++ "Z"
         ++ "\""
 
 
@@ -252,7 +265,7 @@ view model =
         , section [ class "iso-date" ]
             [ h2 [] [ text "ISO 8601" ]
             , p []
-                [ em [] [ text "Time zone should be set to 'Z' no matter what offset you are using, see Time zones below." ]
+                [ em [] [ text "Do not add a time zone, see Time zones below. Millisecond precision is ignored." ]
                 ]
             , label []
                 [ div [] [ text "ISO Date String" ]
@@ -286,10 +299,8 @@ view model =
             , h3 [ id "time-zones" ] [ text "Time zones" ]
             , p [] [ text """Clarion date time is “local”, which means it does not
         encode time zones in any way. If you input an ISO 8601 string with a time zone offset,
-        the calculations will be offset by that amount.
-        This is why the calculated ISO 8601 date string always defaults to 'Z',
-        i.e. the UTC standard time zone. This may well be incorrect for your time zone,
-        so adjust accordingly!""" ]
+        the calculations will be offset by that amount – likely not what you want!
+        This is why the calculated ISO 8601 date string won't have an offset either. Adjust accordingly!""" ]
             ]
         , footer []
             [ p []
