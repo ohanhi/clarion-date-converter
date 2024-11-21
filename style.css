@@ -3,8 +3,11 @@
 }
 
 :root {
-  --font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  --font-family: 'Figtree', sans-serif;
   --font-size: 18px;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
 }
 
 html,
@@ -41,11 +44,15 @@ body {
 
 main {
   width: 100%;
-  max-width: 26rem;
+  max-width: 28rem;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 2rem;
   background-color: white;
+}
+
+section {
+  margin: 2rem 0;
 }
 
 input {
