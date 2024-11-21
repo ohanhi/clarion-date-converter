@@ -9,6 +9,10 @@ import Json.Decode as JD
 import Time
 
 
+
+--- CONVERSIONS
+
+
 clarionStartDate : Time.Posix
 clarionStartDate =
     -- Dec 28th 1800
@@ -18,6 +22,37 @@ clarionStartDate =
 millisInDay : Int
 millisInDay =
     24 * 60 * 60 * 1000
+
+
+type alias ClarionDate =
+    { clarionDate : Int, clarionTime : Int }
+
+
+posixToClarion : Time.Posix -> ClarionDate
+posixToClarion time =
+    let
+        posix =
+            Time.posixToMillis time - Time.posixToMillis clarionStartDate
+    in
+    { clarionDate = posix // millisInDay
+    , clarionTime = Basics.modBy millisInDay posix // 10 + 1
+    }
+
+
+clarionToPosix : ClarionDate -> Time.Posix
+clarionToPosix { clarionDate, clarionTime } =
+    let
+        dateMillis =
+            clarionDate * millisInDay + Time.posixToMillis clarionStartDate
+
+        timeMillis =
+            (clarionTime - 1) * 10
+    in
+    Time.millisToPosix (dateMillis + timeMillis)
+
+
+
+--- APPLICATION
 
 
 type alias Model =
@@ -102,77 +137,27 @@ update msg model =
     )
 
 
-type alias ParsedState =
-    Maybe Time.Posix
-
-
-parseModelFromClarion : Model -> ParsedState
-parseModelFromClarion model =
-    let
-        maybeDateMillis =
-            model.clarionDate
-                |> String.toInt
-                -- Clarion date is days elapsed from the start date
-                |> Maybe.map (\num -> Time.posixToMillis clarionStartDate + num * millisInDay)
-
-        maybeTimeMillis =
-            model.clarionTime
-                |> String.toInt
-                -- Clarion time is 1/100ths of a second + 1
-                |> Maybe.map (\num -> (num - 1) * 10)
-    in
-    Maybe.map2 (\dateMillis timeMillis -> Time.millisToPosix (dateMillis + timeMillis))
-        maybeDateMillis
-        maybeTimeMillis
-
-
 recalculateFromClarion : Model -> Model
 recalculateFromClarion model =
     let
-        state =
-            parseModelFromClarion model
-
-        toInput accessor =
-            state
-                |> Maybe.map (accessor Time.utc >> String.fromInt)
-                |> Maybe.withDefault ""
-
-        monthToInput =
-            state
-                |> Maybe.map (Time.toMonth Time.utc >> monthToNumber >> String.fromInt)
-                |> Maybe.withDefault ""
+        maybeTime =
+            Maybe.map2 (\d t -> clarionToPosix { clarionDate = d, clarionTime = t })
+                (String.toInt model.clarionDate)
+                (String.toInt model.clarionTime)
     in
-    { model
-        | year = toInput Time.toYear
-        , month = monthToInput
-        , date = toInput Time.toDay
-        , hour = toInput Time.toHour
-        , minute = toInput Time.toMinute
-        , second = toInput Time.toSecond
-        , milli = toInput Time.toMillis
-        , isoDate = state |> Maybe.map (Iso8601.fromTime >> String.replace "\"" "") |> Maybe.withDefault ""
-    }
+    recalculateFromIso
+        { model
+            | isoDate =
+                maybeTime
+                    |> Maybe.map (Iso8601.fromTime >> String.replace "\"" "")
+                    |> Maybe.withDefault ""
+        }
 
 
 recalculateFromHuman : Model -> Model
 recalculateFromHuman model =
-    let
-        isoString =
-            humanToIso model
-
-        { clarionDate, clarionTime } =
-            case JD.decodeString Iso8601.decoder isoString of
-                Ok time ->
-                    posixToClarion time
-
-                Err _ ->
-                    { clarionDate = "", clarionTime = "" }
-    in
-    { model
-        | clarionDate = clarionDate
-        , clarionTime = clarionTime
-        , isoDate = isoString |> String.replace "\"" ""
-    }
+    recalculateFromIso
+        { model | isoDate = humanToIso model |> String.replace "\"" "" }
 
 
 humanToIso : Model -> String
@@ -193,17 +178,6 @@ humanToIso model =
         ++ String.padLeft 3 '0' model.milli
         ++ "Z"
         ++ "\""
-
-
-posixToClarion : Time.Posix -> { clarionDate : String, clarionTime : String }
-posixToClarion time =
-    let
-        posix =
-            Time.posixToMillis time - Time.posixToMillis clarionStartDate
-    in
-    { clarionDate = String.fromInt (posix // millisInDay)
-    , clarionTime = String.fromInt (Basics.modBy millisInDay posix // 10 + 1)
-    }
 
 
 recalculateFromIso : Model -> Model
@@ -236,8 +210,8 @@ recalculateFromIso model =
                 , minute = toInput Time.toMinute
                 , second = toInput Time.toSecond
                 , milli = toInput Time.toMillis
-                , clarionDate = clarionDate
-                , clarionTime = clarionTime
+                , clarionDate = String.fromInt clarionDate
+                , clarionTime = String.fromInt clarionTime
             }
 
         Err _ ->
@@ -249,6 +223,8 @@ recalculateFromIso model =
                 , minute = ""
                 , second = ""
                 , milli = ""
+                , clarionDate = ""
+                , clarionTime = ""
             }
 
 
@@ -315,8 +291,9 @@ view model =
             , p [] [ text """Clarion date time is “local”, which means it does not
         encode time zones in any way. If you input an ISO 8601 string with a time zone offset,
         the calculations will be offset by that amount.
-        This is why the ISO 8601 date string always defaults to 'Z',
-        i.e. the UTC standard time zone. This may well be incorrect for your""" ]
+        This is why the calculated ISO 8601 date string always defaults to 'Z',
+        i.e. the UTC standard time zone. This may well be incorrect for your time zone,
+        so adjust accordingly!""" ]
             ]
         , footer []
             [ p []
