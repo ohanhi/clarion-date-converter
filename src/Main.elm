@@ -269,16 +269,21 @@ view model =
     in
     main_
         []
-        [ header [] [ h1 [] [ text "Clarion and Date Time Converter" ] ]
-        , div [ class "clarion-fields" ]
+        [ header [] [ h1 [] [ text "Clarion Date Time Converter" ] ]
+        , section [ class "clarion-date" ]
             [ h2 [] [ text "Clarion" ]
-            , field "Clarion Date" model.clarionDate ClarionDateInput
-            , field "Clarion Time" model.clarionTime ClarionTimeInput
+            , div [ class "clarion-fields" ]
+                [ field "Clarion Date" model.clarionDate ClarionDateInput
+                , field "Clarion Time" model.clarionTime ClarionTimeInput
+                ]
             ]
-        , div [ class "iso-date-fields" ]
+        , section [ class "iso-date" ]
             [ h2 [] [ text "ISO 8601" ]
+            , p []
+                [ em [] [ text "Time zone should be set to 'Z' no matter what offset you are using, see Time zones below." ]
+                ]
             , label []
-                [ div [] [ text "Date String" ]
+                [ div [] [ text "ISO Date String" ]
                 , input
                     [ type_ "text"
                     , onInput IsoDateInput
@@ -287,21 +292,38 @@ view model =
                     []
                 ]
             ]
-        , div [ class "human-fields" ]
+        , section [ class "human-date" ]
             [ h2 [] [ text "Human" ]
-            , field "Day" model.date DateInput
-            , field "Month" model.month MonthInput
-            , field "Year" model.year YearInput
-            , field "Hour" model.hour HourInput
-            , field "Minute" model.minute MinuteInput
-            , field "Second" model.second SecondInput
+            , div [ class "human-fields" ]
+                [ field "Day" model.date DateInput
+                , field "Month" model.month MonthInput
+                , field "Year" model.year YearInput
+                , field "Hour" model.hour HourInput
+                , field "Minute" model.minute MinuteInput
+                , field "Second" model.second SecondInput
+                ]
             ]
-        , p [] [ text """Clarion date is the number of days since 28th of December, 1800.
+        , section [ class "info" ]
+            [ h2 [] [ text "Information on Clarion date and time" ]
+            , p [] [ text """Clarion date is the number of days since 28th of December, 1800.
         Interestingly, the first valid date is 1st of January, 1801.
         This means the valid values range from 4 upwards.""" ]
-        , p [] [ text """Clarion time is centiseconds from midnight, indexed from 1.
+            , p [] [ text """Clarion time is centiseconds from midnight, indexed from 1.
         That is, 1/100ths of a second from midnight + 1.
         There are 86400 seconds in a day, which means the valid values range from 1 to 864000""" ]
+            , h3 [ id "time-zones" ] [ text "Time zones" ]
+            , p [] [ text """Clarion date time is “local”, which means it does not
+        encode time zones in any way. If you input an ISO 8601 string with a time zone offset,
+        the calculations will be offset by that amount.
+        This is why the ISO 8601 date string always defaults to 'Z',
+        i.e. the UTC standard time zone. This may well be incorrect for your""" ]
+            ]
+        , footer []
+            [ p []
+                [ text "This converter is Open Source under BSD-3. "
+                , a [ href "https://github.com/ohanhi/clarion-date-converter" ] [ text "GitHub" ]
+                ]
+            ]
         ]
 
 
