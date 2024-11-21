@@ -5328,6 +5328,13 @@ var $elm$core$Task$perform = F2(
 	});
 var $elm$browser$Browser$element = _Browser_element;
 var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$json$Json$Decode$decodeString = _Json_runOnString;
@@ -5472,9 +5479,6 @@ var $elm$parser$Parser$Advanced$end = function (x) {
 };
 var $elm$parser$Parser$end = $elm$parser$Parser$Advanced$end($elm$parser$Parser$ExpectingEnd);
 var $elm$parser$Parser$Advanced$isSubChar = _Parser_isSubChar;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $elm$parser$Parser$Advanced$chompWhileHelp = F5(
 	function (isGood, offset, row, col, s0) {
 		chompWhileHelp:
@@ -5600,10 +5604,6 @@ var $rtfeldman$elm_iso8601_date_strings$Iso8601$fractionsOfASecondInMs = A2(
 	},
 	$elm$parser$Parser$getChompedString(
 		$elm$parser$Parser$chompWhile($elm$core$Char$isDigit)));
-var $elm$time$Time$Posix = function (a) {
-	return {$: 'Posix', a: a};
-};
-var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
 var $rtfeldman$elm_iso8601_date_strings$Iso8601$fromParts = F6(
 	function (monthYearDayMs, hour, minute, second, ms, utcOffsetMinutes) {
 		return $elm$time$Time$millisToPosix((((monthYearDayMs + (((hour * 60) * 60) * 1000)) + (((minute - utcOffsetMinutes) * 60) * 1000)) + (second * 1000)) + ms);
@@ -6416,26 +6416,6 @@ var $author$project$Main$recalculateFromIso = function (model) {
 		return model;
 	}
 };
-var $author$project$Main$initModel = function (flags) {
-	return _Utils_Tuple2(
-		$author$project$Main$recalculateFromIso(
-			{clarionDate: '', clarionTime: '', date: '', hour: '', isoDate: flags.isoDate, milli: '', minute: '', month: '', second: '', year: ''}),
-		$elm$core$Platform$Cmd$none);
-};
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Main$clarionToPosix = function (_v0) {
-	var clarionDate = _v0.clarionDate;
-	var clarionTime = _v0.clarionTime;
-	var timeMillis = (clarionTime - 1) * 10;
-	var dateMillis = (clarionDate * $author$project$Main$millisInDay) + $elm$time$Time$posixToMillis($author$project$Main$clarionStartDate);
-	return $elm$time$Time$millisToPosix(dateMillis + timeMillis);
-};
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
 var $rtfeldman$elm_iso8601_date_strings$Iso8601$fromMonth = function (month) {
 	switch (month.$) {
 		case 'Jan':
@@ -6524,6 +6504,43 @@ var $rtfeldman$elm_iso8601_date_strings$Iso8601$fromTime = function (time) {
 		3,
 		A2($elm$time$Time$toMillis, $elm$time$Time$utc, time)) + 'Z'))))))))))));
 };
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $author$project$Main$timeToIso = function (time) {
+	return A3(
+		$elm$core$String$replace,
+		'Z',
+		'',
+		$rtfeldman$elm_iso8601_date_strings$Iso8601$fromTime(time));
+};
+var $author$project$Main$initModel = function (flags) {
+	var isoDate = $author$project$Main$timeToIso(
+		$elm$time$Time$millisToPosix(flags.now + (flags.offsetMinutes * (-60000))));
+	return _Utils_Tuple2(
+		$author$project$Main$recalculateFromIso(
+			{clarionDate: '', clarionTime: '', date: '', hour: '', isoDate: isoDate, milli: '', minute: '', month: '', second: '', year: ''}),
+		$elm$core$Platform$Cmd$none);
+};
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$clarionToPosix = function (_v0) {
+	var clarionDate = _v0.clarionDate;
+	var clarionTime = _v0.clarionTime;
+	var timeMillis = (clarionTime - 1) * 10;
+	var dateMillis = (clarionDate * $author$project$Main$millisInDay) + $elm$time$Time$posixToMillis($author$project$Main$clarionStartDate);
+	return $elm$time$Time$millisToPosix(dateMillis + timeMillis);
+};
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6548,13 +6565,6 @@ var $elm$core$Maybe$map2 = F3(
 					A2(func, a, b));
 			}
 		}
-	});
-var $elm$core$String$replace = F3(
-	function (before, after, string) {
-		return A2(
-			$elm$core$String$join,
-			after,
-			A2($elm$core$String$split, before, string));
 	});
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -6586,7 +6596,7 @@ var $author$project$Main$recalculateFromClarion = function (model) {
 						$elm$core$Maybe$map,
 						A2(
 							$elm$core$Basics$composeR,
-							$rtfeldman$elm_iso8601_date_strings$Iso8601$fromTime,
+							$author$project$Main$timeToIso,
 							A2($elm$core$String$replace, '\"', '')),
 						maybeTime))
 			}));
@@ -6620,7 +6630,7 @@ var $author$project$Main$humanToIso = function (model) {
 		$elm$core$String$padLeft,
 		3,
 		_Utils_chr('0'),
-		model.milli) + ('Z' + '\"'))))))))))))));
+		model.milli) + '\"')))))))))))));
 };
 var $author$project$Main$recalculateFromHuman = function (model) {
 	return $author$project$Main$recalculateFromIso(
@@ -6904,7 +6914,7 @@ var $author$project$Main$view = function (model) {
 								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Time zone should be set to \'Z\' no matter what offset you are using, see Time zones below.')
+										$elm$html$Html$text('Do not add a time zone, see Time zones below. Millisecond precision is ignored.')
 									]))
 							])),
 						A2(
@@ -7035,7 +7045,7 @@ var $author$project$Main$view = function (model) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Clarion date time is “local”, which means it does not\n        encode time zones in any way. If you input an ISO 8601 string with a time zone offset,\n        the calculations will be offset by that amount.\n        This is why the calculated ISO 8601 date string always defaults to \'Z\',\n        i.e. the UTC standard time zone. This may well be incorrect for your time zone,\n        so adjust accordingly!')
+								$elm$html$Html$text('Clarion date time is “local”, which means it does not\n        encode time zones in any way. If you input an ISO 8601 string with a time zone offset,\n        the calculations will be offset by that amount – likely not what you want!\n        This is why the calculated ISO 8601 date string won\'t have an offset either. Adjust accordingly!')
 							]))
 					])),
 				A2(
@@ -7075,8 +7085,13 @@ var $author$project$Main$main = $elm$browser$Browser$element(
 _Platform_export({'Main':{'init':$author$project$Main$main(
 	A2(
 		$elm$json$Json$Decode$andThen,
-		function (isoDate) {
-			return $elm$json$Json$Decode$succeed(
-				{isoDate: isoDate});
+		function (offsetMinutes) {
+			return A2(
+				$elm$json$Json$Decode$andThen,
+				function (now) {
+					return $elm$json$Json$Decode$succeed(
+						{now: now, offsetMinutes: offsetMinutes});
+				},
+				A2($elm$json$Json$Decode$field, 'now', $elm$json$Json$Decode$int));
 		},
-		A2($elm$json$Json$Decode$field, 'isoDate', $elm$json$Json$Decode$string)))(0)}});}(this));
+		A2($elm$json$Json$Decode$field, 'offsetMinutes', $elm$json$Json$Decode$int)))(0)}});}(this));
