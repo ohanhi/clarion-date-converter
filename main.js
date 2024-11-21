@@ -6230,9 +6230,8 @@ var $elm$time$Time$posixToMillis = function (_v0) {
 var $author$project$Main$posixToClarion = function (time) {
 	var posix = $elm$time$Time$posixToMillis(time) - $elm$time$Time$posixToMillis($author$project$Main$clarionStartDate);
 	return {
-		clarionDate: $elm$core$String$fromInt((posix / $author$project$Main$millisInDay) | 0),
-		clarionTime: $elm$core$String$fromInt(
-			((A2($elm$core$Basics$modBy, $author$project$Main$millisInDay, posix) / 10) | 0) + 1)
+		clarionDate: (posix / $author$project$Main$millisInDay) | 0,
+		clarionTime: ((A2($elm$core$Basics$modBy, $author$project$Main$millisInDay, posix) / 10) | 0) + 1
 	};
 };
 var $elm$time$Time$flooredDiv = F2(
@@ -6401,8 +6400,8 @@ var $author$project$Main$recalculateFromIso = function (model) {
 		return _Utils_update(
 			model,
 			{
-				clarionDate: clarionDate,
-				clarionTime: clarionTime,
+				clarionDate: $elm$core$String$fromInt(clarionDate),
+				clarionTime: $elm$core$String$fromInt(clarionTime),
 				date: toInput($elm$time$Time$toDay),
 				hour: toInput($elm$time$Time$toHour),
 				milli: toInput($elm$time$Time$toMillis),
@@ -6416,7 +6415,7 @@ var $author$project$Main$recalculateFromIso = function (model) {
 	} else {
 		return _Utils_update(
 			model,
-			{date: '', hour: '', milli: '', minute: '', month: '', second: '', year: ''});
+			{clarionDate: '', clarionTime: '', date: '', hour: '', milli: '', minute: '', month: '', second: '', year: ''});
 	}
 };
 var $author$project$Main$initModel = function (flags) {
@@ -6427,6 +6426,13 @@ var $author$project$Main$initModel = function (flags) {
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Main$clarionToPosix = function (_v0) {
+	var clarionDate = _v0.clarionDate;
+	var clarionTime = _v0.clarionTime;
+	var timeMillis = (clarionTime - 1) * 10;
+	var dateMillis = (clarionDate * $author$project$Main$millisInDay) + $elm$time$Time$posixToMillis($author$project$Main$clarionStartDate);
+	return $elm$time$Time$millisToPosix(dateMillis + timeMillis);
+};
 var $elm$core$Basics$composeR = F3(
 	function (f, g, x) {
 		return g(
@@ -6545,28 +6551,6 @@ var $elm$core$Maybe$map2 = F3(
 			}
 		}
 	});
-var $author$project$Main$parseModelFromClarion = function (model) {
-	var maybeTimeMillis = A2(
-		$elm$core$Maybe$map,
-		function (num) {
-			return (num - 1) * 10;
-		},
-		$elm$core$String$toInt(model.clarionTime));
-	var maybeDateMillis = A2(
-		$elm$core$Maybe$map,
-		function (num) {
-			return $elm$time$Time$posixToMillis($author$project$Main$clarionStartDate) + (num * $author$project$Main$millisInDay);
-		},
-		$elm$core$String$toInt(model.clarionDate));
-	return A3(
-		$elm$core$Maybe$map2,
-		F2(
-			function (dateMillis, timeMillis) {
-				return $elm$time$Time$millisToPosix(dateMillis + timeMillis);
-			}),
-		maybeDateMillis,
-		maybeTimeMillis);
-};
 var $elm$core$String$replace = F3(
 	function (before, after, string) {
 		return A2(
@@ -6584,50 +6568,30 @@ var $elm$core$Maybe$withDefault = F2(
 		}
 	});
 var $author$project$Main$recalculateFromClarion = function (model) {
-	var state = $author$project$Main$parseModelFromClarion(model);
-	var toInput = function (accessor) {
-		return A2(
-			$elm$core$Maybe$withDefault,
-			'',
-			A2(
-				$elm$core$Maybe$map,
-				A2(
-					$elm$core$Basics$composeR,
-					accessor($elm$time$Time$utc),
-					$elm$core$String$fromInt),
-				state));
-	};
-	var monthToInput = A2(
-		$elm$core$Maybe$withDefault,
-		'',
-		A2(
-			$elm$core$Maybe$map,
-			A2(
-				$elm$core$Basics$composeR,
-				$elm$time$Time$toMonth($elm$time$Time$utc),
-				A2($elm$core$Basics$composeR, $author$project$Main$monthToNumber, $elm$core$String$fromInt)),
-			state));
-	return _Utils_update(
-		model,
-		{
-			date: toInput($elm$time$Time$toDay),
-			hour: toInput($elm$time$Time$toHour),
-			isoDate: A2(
-				$elm$core$Maybe$withDefault,
-				'',
-				A2(
-					$elm$core$Maybe$map,
+	var maybeTime = A3(
+		$elm$core$Maybe$map2,
+		F2(
+			function (d, t) {
+				return $author$project$Main$clarionToPosix(
+					{clarionDate: d, clarionTime: t});
+			}),
+		$elm$core$String$toInt(model.clarionDate),
+		$elm$core$String$toInt(model.clarionTime));
+	return $author$project$Main$recalculateFromIso(
+		_Utils_update(
+			model,
+			{
+				isoDate: A2(
+					$elm$core$Maybe$withDefault,
+					'',
 					A2(
-						$elm$core$Basics$composeR,
-						$rtfeldman$elm_iso8601_date_strings$Iso8601$fromTime,
-						A2($elm$core$String$replace, '\"', '')),
-					state)),
-			milli: toInput($elm$time$Time$toMillis),
-			minute: toInput($elm$time$Time$toMinute),
-			month: monthToInput,
-			second: toInput($elm$time$Time$toSecond),
-			year: toInput($elm$time$Time$toYear)
-		});
+						$elm$core$Maybe$map,
+						A2(
+							$elm$core$Basics$composeR,
+							$rtfeldman$elm_iso8601_date_strings$Iso8601$fromTime,
+							A2($elm$core$String$replace, '\"', '')),
+						maybeTime))
+			}));
 };
 var $author$project$Main$humanToIso = function (model) {
 	return '\"' + (A3(
@@ -6661,25 +6625,16 @@ var $author$project$Main$humanToIso = function (model) {
 		model.milli) + ('Z' + '\"'))))))))))))));
 };
 var $author$project$Main$recalculateFromHuman = function (model) {
-	var isoString = $author$project$Main$humanToIso(model);
-	var _v0 = function () {
-		var _v1 = A2($elm$json$Json$Decode$decodeString, $rtfeldman$elm_iso8601_date_strings$Iso8601$decoder, isoString);
-		if (_v1.$ === 'Ok') {
-			var time = _v1.a;
-			return $author$project$Main$posixToClarion(time);
-		} else {
-			return {clarionDate: '', clarionTime: ''};
-		}
-	}();
-	var clarionDate = _v0.clarionDate;
-	var clarionTime = _v0.clarionTime;
-	return _Utils_update(
-		model,
-		{
-			clarionDate: clarionDate,
-			clarionTime: clarionTime,
-			isoDate: A3($elm$core$String$replace, '\"', '', isoString)
-		});
+	return $author$project$Main$recalculateFromIso(
+		_Utils_update(
+			model,
+			{
+				isoDate: A3(
+					$elm$core$String$replace,
+					'\"',
+					'',
+					$author$project$Main$humanToIso(model))
+			}));
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -7040,7 +6995,7 @@ var $author$project$Main$view = function (model) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Clarion date time is “local”, which means it does not\n        encode time zones in any way. If you input an ISO 8601 string with a time zone offset,\n        the calculations will be offset by that amount.\n        This is why the ISO 8601 date string always defaults to \'Z\',\n        i.e. the UTC standard time zone. This may well be incorrect for your')
+								$elm$html$Html$text('Clarion date time is “local”, which means it does not\n        encode time zones in any way. If you input an ISO 8601 string with a time zone offset,\n        the calculations will be offset by that amount.\n        This is why the calculated ISO 8601 date string always defaults to \'Z\',\n        i.e. the UTC standard time zone. This may well be incorrect for your time zone,\n        so adjust accordingly!')
 							]))
 					])),
 				A2(
