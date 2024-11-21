@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (clarionToPosix, main, millisInDay, posixToClarion)
 
 import Browser
 import Html exposing (..)
@@ -21,7 +21,7 @@ clarionStartDate =
 
 millisInDay : Int
 millisInDay =
-    24 * 60 * 60 * 1000
+    86400000
 
 
 type alias ClarionDate =
@@ -35,7 +35,7 @@ posixToClarion time =
             Time.posixToMillis time - Time.posixToMillis clarionStartDate
     in
     { clarionDate = posix // millisInDay
-    , clarionTime = Basics.modBy millisInDay posix // 10 + 1
+    , clarionTime = (Basics.modBy millisInDay posix // 10) + 1
     }
 
 
