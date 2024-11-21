@@ -6771,6 +6771,7 @@ var $author$project$Main$SecondInput = function (a) {
 var $author$project$Main$YearInput = function (a) {
 	return {$: 'YearInput', a: a};
 };
+var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
@@ -6781,9 +6782,19 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$em = _VirtualDom_node('em');
+var $elm$html$Html$footer = _VirtualDom_node('footer');
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $elm$html$Html$header = _VirtualDom_node('header');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$html$Html$main_ = _VirtualDom_node('main');
@@ -6820,6 +6831,7 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$html$Html$section = _VirtualDom_node('section');
 var $elm$html$Html$Attributes$size = function (n) {
 	return A2(
 		_VirtualDom_attribute,
@@ -6872,14 +6884,14 @@ var $author$project$Main$view = function (model) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Clarion and Date Time Converter')
+								$elm$html$Html$text('Clarion Date Time Converter')
 							]))
 					])),
 				A2(
-				$elm$html$Html$div,
+				$elm$html$Html$section,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('clarion-fields')
+						$elm$html$Html$Attributes$class('clarion-date')
 					]),
 				_List_fromArray(
 					[
@@ -6890,14 +6902,23 @@ var $author$project$Main$view = function (model) {
 							[
 								$elm$html$Html$text('Clarion')
 							])),
-						A3(field, 'Clarion Date', model.clarionDate, $author$project$Main$ClarionDateInput),
-						A3(field, 'Clarion Time', model.clarionTime, $author$project$Main$ClarionTimeInput)
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('clarion-fields')
+							]),
+						_List_fromArray(
+							[
+								A3(field, 'Clarion Date', model.clarionDate, $author$project$Main$ClarionDateInput),
+								A3(field, 'Clarion Time', model.clarionTime, $author$project$Main$ClarionTimeInput)
+							]))
 					])),
 				A2(
-				$elm$html$Html$div,
+				$elm$html$Html$section,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('iso-date-fields')
+						$elm$html$Html$Attributes$class('iso-date')
 					]),
 				_List_fromArray(
 					[
@@ -6909,6 +6930,19 @@ var $author$project$Main$view = function (model) {
 								$elm$html$Html$text('ISO 8601')
 							])),
 						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$em,
+								_List_Nil,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Time zone should be set to \'Z\' no matter what offset you are using, see Time zones below.')
+									]))
+							])),
+						A2(
 						$elm$html$Html$label,
 						_List_Nil,
 						_List_fromArray(
@@ -6918,7 +6952,7 @@ var $author$project$Main$view = function (model) {
 								_List_Nil,
 								_List_fromArray(
 									[
-										$elm$html$Html$text('Date String')
+										$elm$html$Html$text('ISO Date String')
 									])),
 								A2(
 								$elm$html$Html$input,
@@ -6932,10 +6966,10 @@ var $author$project$Main$view = function (model) {
 							]))
 					])),
 				A2(
-				$elm$html$Html$div,
+				$elm$html$Html$section,
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('human-fields')
+						$elm$html$Html$Attributes$class('human-date')
 					]),
 				_List_fromArray(
 					[
@@ -6946,26 +6980,91 @@ var $author$project$Main$view = function (model) {
 							[
 								$elm$html$Html$text('Human')
 							])),
-						A3(field, 'Day', model.date, $author$project$Main$DateInput),
-						A3(field, 'Month', model.month, $author$project$Main$MonthInput),
-						A3(field, 'Year', model.year, $author$project$Main$YearInput),
-						A3(field, 'Hour', model.hour, $author$project$Main$HourInput),
-						A3(field, 'Minute', model.minute, $author$project$Main$MinuteInput),
-						A3(field, 'Second', model.second, $author$project$Main$SecondInput)
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$class('human-fields')
+							]),
+						_List_fromArray(
+							[
+								A3(field, 'Day', model.date, $author$project$Main$DateInput),
+								A3(field, 'Month', model.month, $author$project$Main$MonthInput),
+								A3(field, 'Year', model.year, $author$project$Main$YearInput),
+								A3(field, 'Hour', model.hour, $author$project$Main$HourInput),
+								A3(field, 'Minute', model.minute, $author$project$Main$MinuteInput),
+								A3(field, 'Second', model.second, $author$project$Main$SecondInput)
+							]))
 					])),
 				A2(
-				$elm$html$Html$p,
+				$elm$html$Html$section,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('info')
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$h2,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Information on Clarion date and time')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Clarion date is the number of days since 28th of December, 1800.\n        Interestingly, the first valid date is 1st of January, 1801.\n        This means the valid values range from 4 upwards.')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Clarion time is centiseconds from midnight, indexed from 1.\n        That is, 1/100ths of a second from midnight + 1.\n        There are 86400 seconds in a day, which means the valid values range from 1 to 864000')
+							])),
+						A2(
+						$elm$html$Html$h3,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('time-zones')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Time zones')
+							])),
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Clarion date time is “local”, which means it does not\n        encode time zones in any way. If you input an ISO 8601 string with a time zone offset,\n        the calculations will be offset by that amount.\n        This is why the ISO 8601 date string always defaults to \'Z\',\n        i.e. the UTC standard time zone. This may well be incorrect for your')
+							]))
+					])),
+				A2(
+				$elm$html$Html$footer,
 				_List_Nil,
 				_List_fromArray(
 					[
-						$elm$html$Html$text('Clarion date is the number of days since 28th of December, 1800.\n        Interestingly, the first valid date is 1st of January, 1801.\n        This means the valid values range from 4 upwards.')
-					])),
-				A2(
-				$elm$html$Html$p,
-				_List_Nil,
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Clarion time is centiseconds from midnight, indexed from 1.\n        That is, 1/100ths of a second from midnight + 1.\n        There are 86400 seconds in a day, which means the valid values range from 1 to 864000')
+						A2(
+						$elm$html$Html$p,
+						_List_Nil,
+						_List_fromArray(
+							[
+								$elm$html$Html$text('This converter is Open Source under BSD-3. '),
+								A2(
+								$elm$html$Html$a,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$href('https://github.com/ohanhi/clarion-date-converter')
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('GitHub')
+									]))
+							]))
 					]))
 			]));
 };
