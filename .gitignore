@@ -2,3 +2,5 @@
 elm-stuff
 # elm-repl generated files
 repl-temp-*
+# built JS ignored on main branch
+main.js
