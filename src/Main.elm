@@ -1,4 +1,4 @@
-module Main exposing (main)
+module Main exposing (clarionToPosix, main, maxClarionTime, millisInDay, posixToClarion)
 
 import Browser
 import Html exposing (..)
@@ -19,9 +19,14 @@ clarionStartDate =
     Time.millisToPosix -5333472000000
 
 
+maxClarionTime : Int
+maxClarionTime =
+    millisInDay // 10
+
+
 millisInDay : Int
 millisInDay =
-    24 * 60 * 60 * 1000
+    86400000
 
 
 type alias ClarionDate =
@@ -35,7 +40,7 @@ posixToClarion time =
             Time.posixToMillis time - Time.posixToMillis clarionStartDate
     in
     { clarionDate = posix // millisInDay
-    , clarionTime = Basics.modBy millisInDay posix // 10 + 1
+    , clarionTime = (Basics.modBy millisInDay posix // 10) + 1
     }
 
 
@@ -215,30 +220,21 @@ recalculateFromIso model =
             }
 
         Err _ ->
-            { model
-                | year = ""
-                , month = ""
-                , date = ""
-                , hour = ""
-                , minute = ""
-                , second = ""
-                , milli = ""
-                , clarionDate = ""
-                , clarionTime = ""
-            }
+            model
 
 
 view : Model -> Html Msg
 view model =
     let
-        field title val msg =
+        field title ( minimum, maximum ) val msg =
             label []
                 [ div [] [ text title ]
                 , input
                     [ type_ "number"
                     , onInput msg
                     , value val
-                    , size 5
+                    , Html.Attributes.min (String.fromInt minimum)
+                    , Html.Attributes.max (String.fromInt maximum)
                     ]
                     []
                 ]
@@ -249,8 +245,8 @@ view model =
         , section [ class "clarion-date" ]
             [ h2 [] [ text "Clarion" ]
             , div [ class "clarion-fields" ]
-                [ field "Clarion Date" model.clarionDate ClarionDateInput
-                , field "Clarion Time" model.clarionTime ClarionTimeInput
+                [ field "Clarion Date" ( 4, 99999 ) model.clarionDate ClarionDateInput
+                , field "Clarion Time" ( 1, maxClarionTime ) model.clarionTime ClarionTimeInput
                 ]
             ]
         , section [ class "iso-date" ]
@@ -271,12 +267,12 @@ view model =
         , section [ class "human-date" ]
             [ h2 [] [ text "Human" ]
             , div [ class "human-fields" ]
-                [ field "Day" model.date DateInput
-                , field "Month" model.month MonthInput
-                , field "Year" model.year YearInput
-                , field "Hour" model.hour HourInput
-                , field "Minute" model.minute MinuteInput
-                , field "Second" model.second SecondInput
+                [ field "Day" ( 1, 31 ) model.date DateInput
+                , field "Month" ( 1, 12 ) model.month MonthInput
+                , field "Year" ( 0, 3000 ) model.year YearInput
+                , field "Hour" ( 1, 23 ) model.hour HourInput
+                , field "Minute" ( 0, 59 ) model.minute MinuteInput
+                , field "Second" ( 0, 59 ) model.second SecondInput
                 ]
             ]
         , section [ class "info" ]
