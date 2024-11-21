@@ -6222,7 +6222,7 @@ var $author$project$Main$monthToNumber = function (month) {
 	}
 };
 var $author$project$Main$clarionStartDate = $elm$time$Time$millisToPosix(-5333472000000);
-var $author$project$Main$millisInDay = ((24 * 60) * 60) * 1000;
+var $author$project$Main$millisInDay = 86400000;
 var $elm$time$Time$posixToMillis = function (_v0) {
 	var millis = _v0.a;
 	return millis;
@@ -6413,9 +6413,7 @@ var $author$project$Main$recalculateFromIso = function (model) {
 				year: toInput($elm$time$Time$toYear)
 			});
 	} else {
-		return _Utils_update(
-			model,
-			{clarionDate: '', clarionTime: '', date: '', hour: '', milli: '', minute: '', month: '', second: '', year: ''});
+		return model;
 	}
 };
 var $author$project$Main$initModel = function (flags) {
@@ -6753,6 +6751,9 @@ var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id'
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$label = _VirtualDom_node('label');
 var $elm$html$Html$main_ = _VirtualDom_node('main');
+var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
+var $author$project$Main$maxClarionTime = ($author$project$Main$millisInDay / 10) | 0;
+var $elm$html$Html$Attributes$min = $elm$html$Html$Attributes$stringProperty('min');
 var $elm$html$Html$Events$alwaysStop = function (x) {
 	return _Utils_Tuple2(x, true);
 };
@@ -6787,19 +6788,15 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$section = _VirtualDom_node('section');
-var $elm$html$Html$Attributes$size = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'size',
-		$elm$core$String$fromInt(n));
-};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $author$project$Main$view = function (model) {
-	var field = F3(
-		function (title, val, msg) {
+	var field = F4(
+		function (title, _v0, val, msg) {
+			var minimum = _v0.a;
+			var maximum = _v0.b;
 			return A2(
 				$elm$html$Html$label,
 				_List_Nil,
@@ -6819,7 +6816,10 @@ var $author$project$Main$view = function (model) {
 								$elm$html$Html$Attributes$type_('number'),
 								$elm$html$Html$Events$onInput(msg),
 								$elm$html$Html$Attributes$value(val),
-								$elm$html$Html$Attributes$size(5)
+								$elm$html$Html$Attributes$min(
+								$elm$core$String$fromInt(minimum)),
+								$elm$html$Html$Attributes$max(
+								$elm$core$String$fromInt(maximum))
 							]),
 						_List_Nil)
 					]));
@@ -6865,8 +6865,18 @@ var $author$project$Main$view = function (model) {
 							]),
 						_List_fromArray(
 							[
-								A3(field, 'Clarion Date', model.clarionDate, $author$project$Main$ClarionDateInput),
-								A3(field, 'Clarion Time', model.clarionTime, $author$project$Main$ClarionTimeInput)
+								A4(
+								field,
+								'Clarion Date',
+								_Utils_Tuple2(4, 99999),
+								model.clarionDate,
+								$author$project$Main$ClarionDateInput),
+								A4(
+								field,
+								'Clarion Time',
+								_Utils_Tuple2(1, $author$project$Main$maxClarionTime),
+								model.clarionTime,
+								$author$project$Main$ClarionTimeInput)
 							]))
 					])),
 				A2(
@@ -6943,12 +6953,42 @@ var $author$project$Main$view = function (model) {
 							]),
 						_List_fromArray(
 							[
-								A3(field, 'Day', model.date, $author$project$Main$DateInput),
-								A3(field, 'Month', model.month, $author$project$Main$MonthInput),
-								A3(field, 'Year', model.year, $author$project$Main$YearInput),
-								A3(field, 'Hour', model.hour, $author$project$Main$HourInput),
-								A3(field, 'Minute', model.minute, $author$project$Main$MinuteInput),
-								A3(field, 'Second', model.second, $author$project$Main$SecondInput)
+								A4(
+								field,
+								'Day',
+								_Utils_Tuple2(1, 31),
+								model.date,
+								$author$project$Main$DateInput),
+								A4(
+								field,
+								'Month',
+								_Utils_Tuple2(1, 12),
+								model.month,
+								$author$project$Main$MonthInput),
+								A4(
+								field,
+								'Year',
+								_Utils_Tuple2(0, 3000),
+								model.year,
+								$author$project$Main$YearInput),
+								A4(
+								field,
+								'Hour',
+								_Utils_Tuple2(1, 23),
+								model.hour,
+								$author$project$Main$HourInput),
+								A4(
+								field,
+								'Minute',
+								_Utils_Tuple2(0, 59),
+								model.minute,
+								$author$project$Main$MinuteInput),
+								A4(
+								field,
+								'Second',
+								_Utils_Tuple2(0, 59),
+								model.second,
+								$author$project$Main$SecondInput)
 							]))
 					])),
 				A2(
