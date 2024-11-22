@@ -6536,21 +6536,6 @@ var $author$project$Main$clarionToPosix = function (_v0) {
 	var dateMillis = (clarionDate * $author$project$Main$millisInDay) + $elm$time$Time$posixToMillis($author$project$Main$clarionStartDate);
 	return $elm$time$Time$millisToPosix(dateMillis + timeMillis);
 };
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $elm$core$Maybe$map2 = F3(
 	function (func, ma, mb) {
 		if (ma.$ === 'Nothing') {
@@ -6566,15 +6551,6 @@ var $elm$core$Maybe$map2 = F3(
 			}
 		}
 	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $author$project$Main$recalculateFromClarion = function (model) {
 	var maybeTime = A3(
 		$elm$core$Maybe$map2,
@@ -6585,24 +6561,26 @@ var $author$project$Main$recalculateFromClarion = function (model) {
 			}),
 		$elm$core$String$toInt(model.clarionDate),
 		$elm$core$String$toInt(model.clarionTime));
-	return $author$project$Main$recalculateFromIso(
-		_Utils_update(
+	if (maybeTime.$ === 'Just') {
+		var time = maybeTime.a;
+		return $author$project$Main$recalculateFromIso(
+			_Utils_update(
+				model,
+				{
+					isoDate: A3(
+						$elm$core$String$replace,
+						'\"',
+						'',
+						$author$project$Main$timeToIso(time))
+				}));
+	} else {
+		return _Utils_update(
 			model,
-			{
-				isoDate: A2(
-					$elm$core$Maybe$withDefault,
-					'',
-					A2(
-						$elm$core$Maybe$map,
-						A2(
-							$elm$core$Basics$composeR,
-							$author$project$Main$timeToIso,
-							A2($elm$core$String$replace, '\"', '')),
-						maybeTime))
-			}));
+			{date: '', hour: '', isoDate: '', minute: '', month: '', second: '', year: ''});
+	}
 };
 var $author$project$Main$humanToIso = function (model) {
-	return '\"' + (A3(
+	return A3(
 		$elm$core$String$padLeft,
 		4,
 		_Utils_chr('0'),
@@ -6626,23 +6604,25 @@ var $author$project$Main$humanToIso = function (model) {
 		$elm$core$String$padLeft,
 		2,
 		_Utils_chr('0'),
-		model.second) + ('.' + (A3(
+		model.second) + ('.' + A3(
 		$elm$core$String$padLeft,
 		3,
 		_Utils_chr('0'),
-		model.milli) + '\"')))))))))))));
+		model.milli))))))))))));
 };
 var $author$project$Main$recalculateFromHuman = function (model) {
-	return $author$project$Main$recalculateFromIso(
-		_Utils_update(
+	var isoDate = $author$project$Main$humanToIso(model);
+	var _v0 = $rtfeldman$elm_iso8601_date_strings$Iso8601$toTime(isoDate);
+	if (_v0.$ === 'Ok') {
+		return $author$project$Main$recalculateFromIso(
+			_Utils_update(
+				model,
+				{isoDate: isoDate}));
+	} else {
+		return _Utils_update(
 			model,
-			{
-				isoDate: A3(
-					$elm$core$String$replace,
-					'\"',
-					'',
-					$author$project$Main$humanToIso(model))
-			}));
+			{clarionDate: '', clarionTime: '', isoDate: ''});
+	}
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -6797,6 +6777,7 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
 var $elm$html$Html$p = _VirtualDom_node('p');
+var $elm$html$Html$Attributes$pattern = $elm$html$Html$Attributes$stringProperty('pattern');
 var $elm$html$Html$section = _VirtualDom_node('section');
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
@@ -6878,7 +6859,7 @@ var $author$project$Main$view = function (model) {
 								A4(
 								field,
 								'Clarion Date',
-								_Utils_Tuple2(4, 99999),
+								_Utils_Tuple2(4, 999999),
 								model.clarionDate,
 								$author$project$Main$ClarionDateInput),
 								A4(
@@ -6935,7 +6916,8 @@ var $author$project$Main$view = function (model) {
 									[
 										$elm$html$Html$Attributes$type_('text'),
 										$elm$html$Html$Events$onInput($author$project$Main$IsoDateInput),
-										$elm$html$Html$Attributes$value(model.isoDate)
+										$elm$html$Html$Attributes$value(model.isoDate),
+										$elm$html$Html$Attributes$pattern('\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?')
 									]),
 								_List_Nil)
 							]))
@@ -6978,13 +6960,13 @@ var $author$project$Main$view = function (model) {
 								A4(
 								field,
 								'Year',
-								_Utils_Tuple2(0, 3000),
+								_Utils_Tuple2(1800, 3000),
 								model.year,
 								$author$project$Main$YearInput),
 								A4(
 								field,
 								'Hour',
-								_Utils_Tuple2(1, 23),
+								_Utils_Tuple2(0, 23),
 								model.hour,
 								$author$project$Main$HourInput),
 								A4(
