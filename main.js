@@ -7010,7 +7010,7 @@ var $author$project$Main$view = function (model) {
 						_List_Nil,
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Clarion time is centiseconds from midnight, indexed from 1.\n        That is, 1/100ths of a second from midnight + 1.\n        There are 86400 seconds in a day, which means the valid values range from 1 to 864000')
+								$elm$html$Html$text('Clarion time is centiseconds from midnight, indexed from 1.\n        That is, 1/100ths of a second from midnight + 1.\n        There are 86400 seconds in a day, which means the valid values range from 1 to 8640000.')
 							])),
 						A2(
 						$elm$html$Html$h3,
