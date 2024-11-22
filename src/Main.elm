@@ -164,25 +164,47 @@ recalculateFromClarion model =
                 (String.toInt model.clarionDate)
                 (String.toInt model.clarionTime)
     in
-    recalculateFromIso
-        { model
-            | isoDate =
-                maybeTime
-                    |> Maybe.map (timeToIso >> String.replace "\"" "")
-                    |> Maybe.withDefault ""
-        }
+    case maybeTime of
+        Just time ->
+            recalculateFromIso
+                { model
+                    | isoDate = time |> timeToIso |> String.replace "\"" ""
+                }
+
+        Nothing ->
+            { model
+                | isoDate = ""
+                , year = ""
+                , month = ""
+                , date = ""
+                , hour = ""
+                , minute = ""
+                , second = ""
+            }
 
 
 recalculateFromHuman : Model -> Model
 recalculateFromHuman model =
-    recalculateFromIso
-        { model | isoDate = humanToIso model |> String.replace "\"" "" }
+    let
+        isoDate =
+            humanToIso model
+    in
+    case Iso8601.toTime isoDate of
+        Ok _ ->
+            recalculateFromIso
+                { model | isoDate = isoDate }
+
+        Err _ ->
+            { model
+                | isoDate = ""
+                , clarionDate = ""
+                , clarionTime = ""
+            }
 
 
 humanToIso : Model -> String
 humanToIso model =
-    "\""
-        ++ String.padLeft 4 '0' model.year
+    String.padLeft 4 '0' model.year
         ++ "-"
         ++ String.padLeft 2 '0' model.month
         ++ "-"
@@ -195,7 +217,6 @@ humanToIso model =
         ++ String.padLeft 2 '0' model.second
         ++ "."
         ++ String.padLeft 3 '0' model.milli
-        ++ "\""
 
 
 recalculateFromIso : Model -> Model
@@ -258,7 +279,7 @@ view model =
         , section [ class "clarion-date" ]
             [ h2 [] [ text "Clarion" ]
             , div [ class "clarion-fields" ]
-                [ field "Clarion Date" ( 4, 99999 ) model.clarionDate ClarionDateInput
+                [ field "Clarion Date" ( 4, 999999 ) model.clarionDate ClarionDateInput
                 , field "Clarion Time" ( 1, maxClarionTime ) model.clarionTime ClarionTimeInput
                 ]
             ]
@@ -273,6 +294,7 @@ view model =
                     [ type_ "text"
                     , onInput IsoDateInput
                     , value model.isoDate
+                    , pattern "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{3})?"
                     ]
                     []
                 ]
@@ -282,8 +304,8 @@ view model =
             , div [ class "human-fields" ]
                 [ field "Day" ( 1, 31 ) model.date DateInput
                 , field "Month" ( 1, 12 ) model.month MonthInput
-                , field "Year" ( 0, 3000 ) model.year YearInput
-                , field "Hour" ( 1, 23 ) model.hour HourInput
+                , field "Year" ( 1800, 3000 ) model.year YearInput
+                , field "Hour" ( 0, 23 ) model.hour HourInput
                 , field "Minute" ( 0, 59 ) model.minute MinuteInput
                 , field "Second" ( 0, 59 ) model.second SecondInput
                 ]
