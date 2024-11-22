@@ -317,7 +317,7 @@ view model =
         This means the valid values range from 4 upwards.""" ]
             , p [] [ text """Clarion time is centiseconds from midnight, indexed from 1.
         That is, 1/100ths of a second from midnight + 1.
-        There are 86400 seconds in a day, which means the valid values range from 1 to 864000""" ]
+        There are 86400 seconds in a day, which means the valid values range from 1 to 8640000.""" ]
             , h3 [ id "time-zones" ] [ text "Time zones" ]
             , p [] [ text """Clarion date time is “local”, which means it does not
         encode time zones in any way. If you input an ISO 8601 string with a time zone offset,
